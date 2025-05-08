@@ -1,4 +1,4 @@
-import express from "express";
+import express from "express"; 
 import mongoose from "mongoose";
 import dotenv from "dotenv";
 import cors from "cors";
@@ -16,7 +16,7 @@ const app = express();
 const PORT = process.env.PORT || 5000;
 
 const __filename = fileURLToPath(import.meta.url);
-const _dirname = path.dirname(_filename);
+const __dirname = path.dirname(__filename);
 
 // ✅ Allowed origins for CORS
 const allowedOrigins = [
@@ -83,6 +83,6 @@ app.use((err, req, res, next) => {
 // ✅ Start server
 connectDB().then(() => {
   app.listen(PORT, () => {
-    console.log(🚀 Server running on http://localhost:${PORT});
+    console.log(`🚀 Server running on http://localhost:${PORT}`);
   });
 });

@@ -22,10 +22,10 @@ const __dirname = path.dirname(__filename);
 const allowedOrigins = [
   "http://localhost:5173",
   "http://localhost:5000",
-  "https://dynamic-daffodil-4c6764.netlify.app"
+  "https://dynamic-daffodil-4c6764.netlify.app",
 ];
 
-// ✅ CORS Middleware
+// ✅ CORS Middleware (must be before routes and json parsing)
 app.use(
   cors({
     origin: function (origin, callback) {
@@ -41,13 +41,16 @@ app.use(
   })
 );
 
-// ✅ Handle preflight
+// ✅ Handle preflight OPTIONS requests (crucial for CORS)
 app.options("*", cors());
 
-// ✅ Middleware
+// ✅ Parse JSON
 app.use(express.json());
+
+// ✅ Serve uploads statically
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
+// ✅ Helmet for security
 app.use(
   helmet({
     contentSecurityPolicy: {
@@ -59,7 +62,7 @@ app.use(
   })
 );
 
-// ✅ MongoDB
+// ✅ MongoDB connection
 const connectDB = async () => {
   try {
     await mongoose.connect(process.env.MONGO_URI);
@@ -75,7 +78,7 @@ app.use("/api/auth", authRoutes);
 app.use("/api/products", productRoutes);
 app.use("/api/client-queries", queryRoutes);
 
-// ✅ Error handler
+// ✅ Global error handler
 app.use((err, req, res, next) => {
   console.error("💥 Server error:", err.message);
   res.status(500).json({
@@ -84,7 +87,7 @@ app.use((err, req, res, next) => {
   });
 });
 
-// ✅ Start
+// ✅ Start server
 connectDB().then(() => {
   app.listen(PORT, () => {
     console.log(`🚀 Server running on http://localhost:${PORT}`);

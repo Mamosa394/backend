@@ -18,17 +18,23 @@ const PORT = process.env.PORT || 5000;
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
+// CORS configuration
+const allowedOrigins = ['http://localhost:5173', 'https://enchanting-bienenstitch-933834.netlify.app'];
+
+const corsOptions = {
+  origin: function (origin, callback) {
+    if (allowedOrigins.indexOf(origin) !== -1 || !origin) {
+      callback(null, true); // Allow the request
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
+  methods: ["GET", "POST", "PUT", "DELETE"],
+  allowedHeaders: ["Content-Type", "Authorization"],
+};
+
 // Middleware
-app.use(
-  cors({
-    origin: [
-      "http://localhost:5173", // Local development
-      "https://enchanting-bienenstitch-933834.netlify.app", // Production (Netlify)
-    ],
-    methods: ["GET", "POST", "PUT", "DELETE"],
-    allowedHeaders: ["Content-Type", "Authorization"],
-  })
-);
+app.use(cors(corsOptions)); // Use custom CORS configuration
 
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 app.use(

@@ -20,7 +20,8 @@ const __dirname = path.dirname(__filename);
 
 // ✅ Allowed origins for CORS
 const allowedOrigins = [
-  "https://enchanting-bienenstitch-933834.netlify.app"
+  "https://enchanting-bienenstitch-933834.netlify.app", // Netlify
+  "http://localhost:5173" // Local development
 ];
 
 // ✅ Middleware
@@ -69,9 +70,12 @@ app.use("/api/auth", authRoutes);
 app.use("/api/products", productRoutes);
 app.use("/api/client-queries", queryRoutes);
 
+// ✅ Handle preflight requests
+app.options('*', cors());
+
 // ✅ Global error handler
 app.use((err, req, res, next) => {
-  console.error("💥 Server error:", err.message);
+  console.error("💥 Server error:", err.message || err);
   res.status(500).json({
     success: false,
     message: "Internal server error",

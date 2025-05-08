@@ -16,27 +16,32 @@ const app = express();
 const PORT = process.env.PORT || 5000;
 
 const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+const _dirname = path.dirname(_filename);
 
-// CORS configuration
-const allowedOrigins = ['http://localhost:5173', 'https://enchanting-bienenstitch-933834.netlify.app'];
+// ✅ Allowed origins for CORS
+const allowedOrigins = [
+  "http://localhost:5173",
+  "http://localhost:5000",
+  "https://enchanting-bienenstitch-933834.netlify.app"
+];
 
-const corsOptions = {
-  origin: function (origin, callback) {
-    if (allowedOrigins.indexOf(origin) !== -1 || !origin) {
-      callback(null, true); // Allow the request
-    } else {
-      callback(new Error('Not allowed by CORS'));
-    }
-  },
-  methods: ["GET", "POST", "PUT", "DELETE"],
-  allowedHeaders: ["Content-Type", "Authorization"],
-};
+// ✅ Middleware
+app.use(
+  cors({
+    origin: function (origin, callback) {
+      if (!origin || allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        callback(new Error("Not allowed by CORS"));
+      }
+    },
+    methods: ["GET", "POST", "PUT", "DELETE"],
+    allowedHeaders: ["Content-Type", "Authorization"],
+  })
+);
 
-// Middleware
-app.use(cors(corsOptions)); // Use custom CORS configuration
+app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
-app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 app.use(
   helmet({
     contentSecurityPolicy: {
@@ -50,10 +55,7 @@ app.use(
 
 app.use(express.json());
 
-// ✅ Serve uploaded images statically
-app.use("/uploads", express.static(path.join(__dirname, "uploads")));
-
-// MongoDB connection
+// ✅ MongoDB connection
 const connectDB = async () => {
   try {
     await mongoose.connect(process.env.MONGO_URI);
@@ -64,23 +66,23 @@ const connectDB = async () => {
   }
 };
 
-// Routes
+// ✅ Routes
 app.use("/api/auth", authRoutes);
-app.use("/api/products", productRoutes); // ✅ Added product routes
+app.use("/api/products", productRoutes);
 app.use("/api/client-queries", queryRoutes);
 
-// Global error handler
+// ✅ Global error handler
 app.use((err, req, res, next) => {
-  console.error("💥 Server error:", err);
+  console.error("💥 Server error:", err.message);
   res.status(500).json({
     success: false,
     message: "Internal server error",
   });
 });
 
-// Start server
+// ✅ Start server
 connectDB().then(() => {
   app.listen(PORT, () => {
-    console.log(`🚀 Server running on http://localhost:${PORT}`);
+    console.log(🚀 Server running on http://localhost:${PORT});
   });
 });

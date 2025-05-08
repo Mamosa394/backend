@@ -22,7 +22,6 @@ const __dirname = path.dirname(__filename);
 app.use(
   cors({
     origin: [
-      "http://localhost:5173",
       "https://enchanting-bienenstitch-933834.netlify.app"
     ],
     methods: ["GET", "POST", "PUT", "DELETE"],

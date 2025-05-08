@@ -1,4 +1,4 @@
-import express from "express"; 
+import express from "express";
 import mongoose from "mongoose";
 import dotenv from "dotenv";
 import cors from "cors";
@@ -21,7 +21,6 @@ const __dirname = path.dirname(__filename);
 // ✅ Allowed origins for CORS
 const allowedOrigins = [
   "http://localhost:5173",
-  "http://localhost:5000",
   "https://enchanting-bienenstitch-933834.netlify.app"
 ];
 

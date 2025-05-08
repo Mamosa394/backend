@@ -22,12 +22,12 @@ const __dirname = path.dirname(__filename);
 app.use(
   cors({
     origin: [
-    
-      "https://enchanting-bienenstitch-933834.netlify.app"
+      "http://localhost:5173", // Local development
+      "https://enchanting-bienenstitch-933834.netlify.app", // Production (Netlify)
     ],
     methods: ["GET", "POST", "PUT", "DELETE"],
     allowedHeaders: ["Content-Type", "Authorization"],
-  })
+  })
 );
 
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));

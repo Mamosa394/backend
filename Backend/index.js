@@ -20,7 +20,7 @@ const __dirname = path.dirname(__filename);
 
 // ✅ Allowed origins for CORS
 const allowedOrigins = [
-  "https://enchanting-bienenstitch-933834.netlify.app", // Netlify
+  "https://dynamic-daffodil-4c6764.netlify.app/", // Netlify
   "http://localhost:5173" // Local development
 ];
 

@@ -20,11 +20,12 @@ const __dirname = path.dirname(__filename);
 
 // ✅ Allowed origins for CORS
 const allowedOrigins = [
-  "https://dynamic-daffodil-4c6764.netlify.app/", // Netlify
-  "http://localhost:5173" // Local development
+  "http://localhost:5173",
+  "http://localhost:5000",
+  "https://dynamic-daffodil-4c6764.netlify.app"
 ];
 
-// ✅ Middleware
+// ✅ CORS Middleware
 app.use(
   cors({
     origin: function (origin, callback) {
@@ -34,11 +35,17 @@ app.use(
         callback(new Error("Not allowed by CORS"));
       }
     },
-    methods: ["GET", "POST", "PUT", "DELETE"],
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization"],
+    credentials: true,
   })
 );
 
+// ✅ Handle preflight
+app.options("*", cors());
+
+// ✅ Middleware
+app.use(express.json());
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
 app.use(
@@ -52,9 +59,7 @@ app.use(
   })
 );
 
-app.use(express.json());
-
-// ✅ MongoDB connection
+// ✅ MongoDB
 const connectDB = async () => {
   try {
     await mongoose.connect(process.env.MONGO_URI);
@@ -70,19 +75,16 @@ app.use("/api/auth", authRoutes);
 app.use("/api/products", productRoutes);
 app.use("/api/client-queries", queryRoutes);
 
-// ✅ Handle preflight requests
-app.options('*', cors());
-
-// ✅ Global error handler
+// ✅ Error handler
 app.use((err, req, res, next) => {
-  console.error("💥 Server error:", err.message || err);
+  console.error("💥 Server error:", err.message);
   res.status(500).json({
     success: false,
     message: "Internal server error",
   });
 });
 
-// ✅ Start server
+// ✅ Start
 connectDB().then(() => {
   app.listen(PORT, () => {
     console.log(`🚀 Server running on http://localhost:${PORT}`);

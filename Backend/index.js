@@ -21,10 +21,13 @@ const __dirname = path.dirname(__filename);
 // Middleware
 app.use(
   cors({
-    origin: process.env.REACT_APP_API_URL || "http://localhost:5173",
+    origin: [
+      "http://localhost:5173",
+      "https://enchanting-bienenstitch-933834.netlify.app"
+    ],
     methods: ["GET", "POST", "PUT", "DELETE"],
     allowedHeaders: ["Content-Type", "Authorization"],
-  })
+  })
 );
 
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));

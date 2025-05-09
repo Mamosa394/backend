@@ -22,7 +22,7 @@ const __dirname = path.dirname(__filename);
 const allowedOrigins = [
   "http://localhost:5173",
   "http://localhost:5000",
-  "https://iwb-frontend-deployment-xo28.vercel.app/",
+  "https://iwb-frontend-deployment-xo28.vercel.app",
 ];
 
 // ✅ CORS Middleware (must be before routes and json parsing)

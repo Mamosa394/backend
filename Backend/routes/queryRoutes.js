@@ -56,19 +56,15 @@ router.post('/', async (req, res) => {
     let autoReplyMessage = '';
 
     if (similarFAQ) {
-      autoReplyMessage = `Auto-Reply: Based on your query, here's an answer:\n\n"${similarFAQ.answer}"`;
+  autoReplyMessage = `Auto-Reply: Based on your query, here's an answer:\n\n"${similarFAQ.answer}"`;
+  status = 'complete';
+}
 
-      await transporter.sendMail({
-        from: 'your-email@gmail.com',
-        to: email,
-        subject: 'Your Query Response',
-        text: autoReplyMessage
-      });
+if (similarFAQ) {
+  autoReplyMessage = `Auto-Reply: Based on your query, here's an answer:\n\n"${similarFAQ.answer}"`;
+  status = 'complete';
+}
 
-      status = 'complete';
-    } else {
-      autoReplyMessage = 'Thank you for your message. Our team will get back to you shortly.';
-    }
 
     const newQuery = new Query({
       name,

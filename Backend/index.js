@@ -9,6 +9,7 @@ import { fileURLToPath } from "url";
 import authRoutes from "./routes/authRoutes.js";
 import productRoutes from "./routes/productRoutes.js";
 import queryRoutes from "./routes/queryRoutes.js";
+import salesRoute from "./routes/salesRoute.js";
 
 dotenv.config();
 
@@ -20,7 +21,7 @@ const __dirname = path.dirname(__filename);
 
 // ✅ Allowed origins for CORS
 const allowedOrigins = [
-  "http://localhost:5173",
+  "http://localhost:3000",
   "http://localhost:5000",
    "http://localhost:3000",
   "https://iwb-deploy-ydi9.vercel.app",
@@ -78,6 +79,7 @@ const connectDB = async () => {
 app.use("/api/auth", authRoutes);
 app.use("/api/products", productRoutes);
 app.use("/api/client-queries", queryRoutes);
+app.use("/api/sales", salesRoute);
 
 // ✅ Global error handler
 app.use((err, req, res, next) => {

@@ -1,85 +1,127 @@
+// routes/sales.js
 import express from "express";
-import Sales from "../models/Sales.js";
+import Sale from "../models/Sales.js";
+import Product from "../models/Product.js";
 
 const router = express.Router();
 
-// GET all sales
+/**
+ * @route GET /api/sales
+ * @description Get all sales
+ * @access Public
+ */
 router.get("/", async (req, res) => {
   try {
-    const sales = await Sales.find().sort({ date: -1 });
-    res.json(sales);
-  } catch (error) {
-    res.status(500).json({ message: error.message });
+    const sales = await Sale.find().populate("productId", "name price");
+    res.status(200).json(sales);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
   }
 });
 
-// POST new sale
-router.post("/", async (req, res) => {
+/**
+ * @route GET /api/sales/:id
+ * @description Get a specific sale by ID
+ * @access Public
+ */
+router.get("/:id", async (req, res) => {
   try {
-    const { date, product, amount, salesperson, status, paymentMethod, saleType } = req.body;
-
-    if (!date || !product || !amount || !salesperson || !status || !paymentMethod || !saleType) {
-      return res.status(400).json({ message: "All fields are required" });
+    const sale = await Sale.findById(req.params.id).populate(
+      "productId",
+      "name price"
+    );
+    if (!sale) {
+      return res.status(404).json({ error: "Sale not found" });
     }
-    
-    const newSale = new Sales({
-      date,
-      product,
-      amount,
-      salesperson,
-      status,
-      paymentMethod,
-      saleType,
-    });
-
-    const savedSale = await newSale.save();
-    res.status(201).json(savedSale);
-  } catch (error) {
-    res.status(400).json({ message: error.message });
+    res.status(200).json(sale);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
   }
 });
 
-// UPDATE a sale
+/**
+ * @route PUT /api/sales/:id
+ * @description Update an existing sale
+ * @access Public
+ */
 router.put("/:id", async (req, res) => {
   try {
-    const { date, product, amount, salesperson, status, paymentMethod, saleType } = req.body;
+    const { productId, paymentDetails } = req.body;
 
-    const updatedSale = await Sales.findByIdAndUpdate(
+    // Validate payment details
+    if (!paymentDetails.cardNumber || !paymentDetails.paymentMethod) {
+      return res.status(400).json({ error: "Incomplete payment details" });
+    }
+
+    // Find and update the sale record
+    const updatedSale = await Sale.findByIdAndUpdate(
       req.params.id,
-      {
-        date,
-        product,
-        amount,
-        salesperson,
-        status,
-        paymentMethod,
-        saleType,
-      },
-      { new: true } // Return the updated document
+      { productId, paymentDetails },
+      { new: true }
     );
 
     if (!updatedSale) {
-      return res.status(404).json({ message: "Sale not found" });
+      return res.status(404).json({ error: "Sale not found" });
     }
 
-    res.json(updatedSale);
-  } catch (error) {
-    res.status(400).json({ message: error.message });
+    res.status(200).json(updatedSale);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
   }
 });
 
-// DELETE a sale
+/**
+ * @route DELETE /api/sales/:id
+ * @description Delete a sale record
+ * @access Public
+ */
 router.delete("/:id", async (req, res) => {
   try {
-    const deletedSale = await Sales.findByIdAndDelete(req.params.id);
-
+    const deletedSale = await Sale.findByIdAndDelete(req.params.id);
     if (!deletedSale) {
-      return res.status(404).json({ message: "Sale not found" });
+      return res.status(404).json({ error: "Sale not found" });
+    }
+    res.status(200).json({ message: "Sale deleted successfully" });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// ... all your existing routes here ...
+
+/**
+ * @route POST /api/sales
+ * @description Record a new sale
+ * @access Public
+ */
+router.post("/", async (req, res) => {
+  try {
+    const { productId, paymentDetails } = req.body;
+
+    if (
+      !productId ||
+      !paymentDetails?.paymentMethod ||
+      !paymentDetails?.cardNumber ||
+      typeof paymentDetails.totalAmount !== "number"
+    ) {
+      return res.status(400).json({ error: "Missing required sale fields" });
     }
 
-    res.json({ message: "Sale deleted successfully" });
-  } catch (error) {
-    res.status(500).json({ message: error.message });
+    // Optional: Check if product exists
+    const product = await Product.findById(productId);
+    if (!product) {
+      return res.status(404).json({ error: "Product not found" });
+    }
+
+    const sale = new Sale({
+      productId,
+      paymentDetails,
+    });
+
+    const savedSale = await sale.save();
+    res.status(201).json(savedSale);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
   }
 });
 

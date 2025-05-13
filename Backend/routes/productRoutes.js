@@ -37,7 +37,8 @@ const upload = multer({ storage });
  */
 router.post("/", upload.single("image"), async (req, res) => {
   try {
-    const { name, type, cpu, ram, storage, gpu, price, status, tags } = req.body;
+    const { name, type, cpu, ram, storage, gpu, price, status, tags } =
+      req.body;
     const image = req.file ? `/uploads/${req.file.filename}` : null;
 
     const newProduct = new Product({
@@ -66,6 +67,15 @@ router.get("/", async (req, res) => {
     res.json(products);
   } catch (err) {
     res.status(500).json({ error: err.message });
+  }
+});
+router.get("/:id", async (req, res) => {
+  try {
+    const product = await Product.findById(req.params.id);
+    if (!product) return res.status(404).json({ error: "Product not found" });
+    res.json(product);
+  } catch (err) {
+    res.status(500).json({ error: "Server error" });
   }
 });
 

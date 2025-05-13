@@ -6,18 +6,17 @@ const router = express.Router();
 
 // Define max allowed users per role (according to brief)
 const MAX_USERS = {
-  sales: 3,       // Max 3 sales personnel
-  finance: 3,     // Max 3 finance personnel
-  admin: 3,       // Max 3 developers (renamed from 'admin' to match brief)
-  investor: Infinity, // No limit specified for investors
-  client: Infinity,   // Unlimited clients
-
+  sales: 3,
+  finance: 3,
+  admin: 3,
+  investor: Infinity,
+  client: Infinity,
 };
 
 // Valid roles based on brief
 const VALID_ROLES = ["sales", "finance", "admin", "investor", "client"];
 
-// SIGNUP with enhanced permission checks
+// SIGNUP route
 router.post("/signup", async (req, res) => {
   const { username, email, password, role = "client", registrationCode } = req.body;
 
@@ -26,34 +25,34 @@ router.post("/signup", async (req, res) => {
     return res.status(400).json({ error: "Invalid role specified." });
   }
 
-  // Special handling for restricted roles (require registration code)
+  // Registration code check for restricted roles
   if (["sales", "finance", "admin"].includes(role)) {
     if (!registrationCode || !validateRegistrationCode(role, registrationCode)) {
       return res.status(403).json({ error: "Invalid or missing registration code for this role." });
     }
   }
 
-  // Validate username
+  // Username validation
   if (username.length < 3) {
     return res.status(400).json({ error: "Username must be at least 3 characters." });
   }
 
   try {
-    // Check for existing email
+    // Check if email is already used
     const existingUser = await User.findOne({ email });
     if (existingUser) {
       return res.status(409).json({ error: "Email already exists." });
     }
 
-    // Check role capacity
+    // Check if the role has reached its limit
     const roleCount = await User.countDocuments({ role });
     if (roleCount >= MAX_USERS[role]) {
-      return res.status(403).json({ 
-        error: `Maximum number of ${role} users reached (${MAX_USERS[role]}).` 
+      return res.status(403).json({
+        error: `Maximum number of ${role} users reached (${MAX_USERS[role]}).`
       });
     }
 
-    // Hash password and create user
+    // Create new user with hashed password
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);
 
@@ -62,21 +61,17 @@ router.post("/signup", async (req, res) => {
       email,
       password: hashedPassword,
       role,
-      mfaEnabled: ["sales", "finance", "admin", "investor"].includes(role) // Enforce MFA for these roles
     });
 
     await newUser.save();
-    res.status(201).json({ 
-      message: "Signup successful.",
-      requiresMFA: newUser.mfaEnabled
-    });
+    res.status(201).json({ message: "Signup successful." });
   } catch (err) {
     console.error("Signup error:", err);
     res.status(500).json({ error: "Server error during signup." });
   }
 });
 
-// LOGIN with MFA reminder
+// LOGIN route
 router.post("/login", async (req, res) => {
   const { email, password } = req.body;
 
@@ -87,14 +82,6 @@ router.post("/login", async (req, res) => {
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) return res.status(401).json({ error: "Invalid credentials." });
 
-    // Check if MFA is required but not set up
-    if (user.mfaEnabled && !user.mfaSecret) {
-      return res.status(206).json({  // 206 Partial Content
-        message: "MFA setup required",
-        requiresMfaSetup: true
-      });
-    }
-
     res.status(200).json({
       message: "Login successful",
       user: {
@@ -102,7 +89,6 @@ router.post("/login", async (req, res) => {
         email: user.email,
         username: user.username,
         role: user.role,
-        requiresMFA: user.mfaEnabled
       }
     });
   } catch (err) {
@@ -111,13 +97,12 @@ router.post("/login", async (req, res) => {
   }
 });
 
+// Registration code check
 function validateRegistrationCode(role, code) {
-  // In production, implement proper code validation (database lookup, JWT, etc.)
   const validCodes = {
     sales: "SALES-PERSONNEL",
     finance: "FINANCE-PERSONNEL",
     admin: "ADMIN-2025",
-
   };
   return code === validCodes[role];
 }
@@ -126,6 +111,5 @@ function validateRegistrationCode(role, code) {
 router.get("/role-limits", (req, res) => {
   res.json(MAX_USERS);
 });
-
 
 export default router;

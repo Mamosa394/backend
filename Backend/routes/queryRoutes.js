@@ -1,5 +1,6 @@
 import express from 'express';
 import Query from "../models/query.js"; 
+import FAQ from '../models/faq.js'; 
 import nodemailer from 'nodemailer';
 import fs from 'fs';
 import path from 'path';
@@ -10,15 +11,15 @@ const __dirname = path.dirname(new URL(import.meta.url).pathname);
 const router = express.Router();
 
 // 🔍 Function: Compare message similarity
-function findSimilarQuery(newMessage, previousQueries) {
+function findSimilarQuery(newMessage, entries) {
   let bestMatch = null;
   let highestScore = 0;
 
-  previousQueries.forEach((q) => {
-    const similarity = simpleSimilarity(newMessage, q.message);
+  entries.forEach((entry) => {
+    const similarity = simpleSimilarity(newMessage, entry.question || entry.message);
     if (similarity > highestScore && similarity > 0.6) {
       highestScore = similarity;
-      bestMatch = q;
+      bestMatch = entry;
     }
   });
 
@@ -47,14 +48,15 @@ router.post('/', async (req, res) => {
   try {
     const { name, email, message } = req.body;
 
-    const allQueries = await Query.find();
-    const similarQuery = findSimilarQuery(message, allQueries);
+    // Search FAQs for similar question first
+    const faqs = await FAQ.find();
+    const similarFAQ = findSimilarQuery(message, faqs);
 
     let status = 'pending';
     let autoReplyMessage = '';
 
-    if (similarQuery) {
-      autoReplyMessage = `Auto-Reply: Based on your query, here's an answer:\n\n"${similarQuery.autoReply || similarQuery.message}"`;
+    if (similarFAQ) {
+      autoReplyMessage = `Auto-Reply: Based on your query, here's an answer:\n\n"${similarFAQ.answer}"`;
 
       await transporter.sendMail({
         from: 'your-email@gmail.com',
@@ -129,5 +131,17 @@ router.delete('/:id', async (req, res) => {
     res.status(500).json({ message: 'Error deleting query' });
   }
 });
+
+// ✅ GET: Fetch all FAQs
+router.get('/faqs', async (req, res) => {
+  try {
+    const faqs = await FAQ.find();
+    res.status(200).json(faqs);
+  } catch (error) {
+    console.error('Error fetching FAQs:', error);
+    res.status(500).json({ message: 'Failed to fetch FAQs' });
+  }
+});
+
 
 export default router;
